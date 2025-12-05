@@ -36,6 +36,51 @@ const Index = () => {
     { rank: 5, nickname: 'SpeedRunner99', violations: 9, severity: 'Средне' },
   ];
 
+  const adminPosts = [
+    {
+      id: 1,
+      type: 'server_status',
+      author: 'lpvpCraftpvpl',
+      time: '5 минут назад',
+      message: '🟢 СЕРВЕР ВКЛЮЧЕН! Заходите играть, ребята!',
+      likes: 42,
+    },
+    {
+      id: 2,
+      type: 'meme',
+      author: 'lpvpCraftpvpl',
+      time: '2 часа назад',
+      message: 'Когда поймал читера с KillAura 😂',
+      imageUrl: '🎮',
+      likes: 127,
+    },
+    {
+      id: 3,
+      type: 'server_status',
+      author: 'lpvpCraftpvpl',
+      time: '4 часа назад',
+      message: '🔧 Сервер на техническом обслуживании. Скоро вернемся!',
+      likes: 23,
+    },
+    {
+      id: 4,
+      type: 'update',
+      author: 'lpvpCraftpvpl',
+      time: '1 день назад',
+      message: '🚀 Обновление 1.1 установлено! Новый анти-чит работает на 100%',
+      likes: 89,
+    },
+    {
+      id: 5,
+      type: 'meme',
+      author: 'lpvpCraftpvpl',
+      time: '2 дня назад',
+      message: 'Читеры, когда видят наш анти-чит: 💀',
+      imageUrl: '😱',
+      likes: 156,
+    },
+  ];
+
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success('Репорт отправлен на проверку!', {
@@ -68,7 +113,7 @@ const Index = () => {
           </div>
           
           <div className="flex gap-2 mt-4 flex-wrap">
-            {['home', 'reports', 'bans', 'analysis', 'stats', 'support'].map((section) => (
+            {['home', 'news', 'reports', 'bans', 'analysis', 'stats', 'support'].map((section) => (
               <Button
                 key={section}
                 variant={activeSection === section ? 'default' : 'outline'}
@@ -78,6 +123,7 @@ const Index = () => {
                 <Icon 
                   name={
                     section === 'home' ? 'Home' : 
+                    section === 'news' ? 'Newspaper' :
                     section === 'reports' ? 'Flag' : 
                     section === 'bans' ? 'Ban' : 
                     section === 'analysis' ? 'Activity' : 
@@ -88,6 +134,7 @@ const Index = () => {
                 />
                 <span className="ml-2">
                   {section === 'home' ? 'Главная' : 
+                   section === 'news' ? 'Новости' :
                    section === 'reports' ? 'Репорты' : 
                    section === 'bans' ? 'Баны' : 
                    section === 'analysis' ? 'Анализ' : 
@@ -228,6 +275,91 @@ const Index = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeSection === 'news' && (
+          <div className="space-y-6">
+            <div className="text-center py-8">
+              <h2 className="text-4xl font-bold mb-2 text-primary glitch-text">НОВОСТИ ОТ АДМИНИСТРАЦИИ</h2>
+              <p className="text-muted-foreground">Обновления, мемы и статус сервера от lpvpCraftpvpl</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-4">
+              {adminPosts.map((post) => (
+                <Card key={post.id} className="cyber-border bg-card/50 backdrop-blur hover:scale-[1.02] transition-transform">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full cyber-border bg-primary/20 flex items-center justify-center">
+                          <Icon name="User" className="text-primary" size={24} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-accent">{post.author}</p>
+                          <p className="text-xs text-muted-foreground">{post.time}</p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className="cyber-border"
+                      >
+                        {post.type === 'server_status' ? '🟢 Статус' : 
+                         post.type === 'meme' ? '😂 Мем' : 
+                         '📢 Обновление'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-lg mb-4">{post.message}</p>
+                    {post.imageUrl && (
+                      <div className="text-center py-8 rounded-lg cyber-border bg-muted/30">
+                        <span className="text-8xl">{post.imageUrl}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <Icon name="Heart" size={16} className="text-destructive" />
+                        <span>{post.likes}</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <Icon name="MessageCircle" size={16} />
+                        <span>Ответить</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <Icon name="Share2" size={16} />
+                        <span>Поделиться</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="cyber-border bg-card/50 backdrop-blur max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Bell" className="text-primary" />
+                  Уведомления о статусе сервера
+                </CardTitle>
+                <CardDescription>Получайте мгновенные уведомления, когда lpvpCraftpvpl включает сервер</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4 flex-wrap">
+                  <Button className="cyber-border pulse-glow gap-2">
+                    <Icon name="Bell" size={18} />
+                    Подписаться на уведомления
+                  </Button>
+                  <Button variant="outline" className="gap-2">
+                    <Icon name="MessageSquare" size={18} />
+                    Discord сервер
+                  </Button>
+                  <Button variant="outline" className="gap-2">
+                    <Icon name="Send" size={18} />
+                    Telegram канал
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
