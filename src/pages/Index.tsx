@@ -12,6 +12,10 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 
   const stats = {
     onlinePlayers: 247,
@@ -83,16 +87,63 @@ const Index = () => {
 
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error('Войдите в аккаунт', {
+        description: 'Для отправки репортов необходимо авторизоваться',
+      });
+      setShowAuthModal(true);
+      return;
+    }
     toast.success('Репорт отправлен на проверку!', {
       description: 'Модерация рассмотрит жалобу в течение 24 часов',
     });
+  };
+
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggedIn(true);
+    setShowAuthModal(false);
+    toast.success('Успешный вход!', {
+      description: 'Добро пожаловать на EndpvpCraft AntiCheat',
+    });
+  };
+
+  const handleLike = (postId: number) => {
+    if (!isLoggedIn) {
+      toast.error('Войдите в аккаунт', {
+        description: 'Для взаимодействия с постами необходимо авторизоваться',
+      });
+      setShowAuthModal(true);
+      return;
+    }
+    const newLiked = new Set(likedPosts);
+    if (newLiked.has(postId)) {
+      newLiked.delete(postId);
+      toast.info('Лайк убран');
+    } else {
+      newLiked.add(postId);
+      toast.success('Лайк поставлен!');
+    }
+    setLikedPosts(newLiked);
+  };
+
+  const handleShare = (post: typeof adminPosts[0]) => {
+    if (!isLoggedIn) {
+      toast.error('Войдите в аккаунт', {
+        description: 'Для взаимодействия с постами необходимо авторизоваться',
+      });
+      setShowAuthModal(true);
+      return;
+    }
+    navigator.clipboard.writeText(`${post.message}\n\nИсточник: EndpvpCraft AntiCheat`);
+    toast.success('Скопировано в буфер обмена!');
   };
 
   return (
     <div className="min-h-screen matrix-bg">
       <nav className="cyber-border sticky top-0 z-50 backdrop-blur-md bg-background/80">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <Icon name="Shield" className="text-primary pulse-glow" size={32} />
               <div>
@@ -109,6 +160,17 @@ const Index = () => {
                 <Icon name="Ban" size={14} />
                 <span>{stats.totalBans} bans</span>
               </Badge>
+              {isLoggedIn ? (
+                <Button variant="outline" onClick={() => setIsLoggedIn(false)} className="cyber-border">
+                  <Icon name="LogOut" size={16} />
+                  <span className="ml-2">Выход</span>
+                </Button>
+              ) : (
+                <Button onClick={() => setShowAuthModal(true)} className="cyber-border pulse-glow">
+                  <Icon name="LogIn" size={16} />
+                  <span className="ml-2">Войти</span>
+                </Button>
+              )}
             </div>
           </div>
           
@@ -319,15 +381,41 @@ const Index = () => {
                       </div>
                     )}
                     <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <Icon name="Heart" size={16} className="text-destructive" />
-                        <span>{post.likes}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => handleLike(post.id)}
+                      >
+                        <Icon 
+                          name="Heart" 
+                          size={16} 
+                          className={likedPosts.has(post.id) ? "text-destructive fill-destructive" : "text-destructive"} 
+                        />
+                        <span>{post.likes + (likedPosts.has(post.id) ? 1 : 0)}</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => {
+                          if (!isLoggedIn) {
+                            toast.error('Войдите в аккаунт');
+                            setShowAuthModal(true);
+                          } else {
+                            toast.info('Функция комментариев скоро появится!');
+                          }
+                        }}
+                      >
                         <Icon name="MessageCircle" size={16} />
                         <span>Ответить</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => handleShare(post)}
+                      >
                         <Icon name="Share2" size={16} />
                         <span>Поделиться</span>
                       </Button>
@@ -340,25 +428,40 @@ const Index = () => {
             <Card className="cyber-border bg-card/50 backdrop-blur max-w-4xl mx-auto">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Icon name="Bell" className="text-primary" />
-                  Уведомления о статусе сервера
+                  <Icon name="Send" className="text-primary" />
+                  Все новости в Telegram
                 </CardTitle>
-                <CardDescription>Получайте мгновенные уведомления, когда lpvpCraftpvpl включает сервер</CardDescription>
+                <CardDescription>Подпишитесь на официальный канал для получения всех обновлений, мемов и уведомлений о статусе сервера</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4 flex-wrap">
-                  <Button className="cyber-border pulse-glow gap-2">
-                    <Icon name="Bell" size={18} />
-                    Подписаться на уведомления
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <Icon name="MessageSquare" size={18} />
-                    Discord сервер
-                  </Button>
-                  <Button variant="outline" className="gap-2">
+                  <Button 
+                    className="cyber-border pulse-glow gap-2"
+                    onClick={() => window.open('https://t.me/lpvpcraftpvpll', '_blank')}
+                  >
                     <Icon name="Send" size={18} />
-                    Telegram канал
+                    Открыть Telegram канал
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="gap-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://t.me/lpvpcraftpvpll');
+                      toast.success('Ссылка скопирована!');
+                    }}
+                  >
+                    <Icon name="Copy" size={18} />
+                    Скопировать ссылку
+                  </Button>
+                </div>
+                <div className="mt-4 p-4 rounded-lg cyber-border bg-muted/30">
+                  <p className="text-sm text-muted-foreground">
+                    📱 В Telegram вы получите:<br/>
+                    • Мгновенные уведомления когда сервер включен<br/>
+                    • Все мемы и обновления от lpvpCraftpvpl<br/>
+                    • Возможность общения с сообществом<br/>
+                    • Эксклюзивные анонсы и события
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -749,6 +852,94 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <Card className="cyber-border bg-card/95 backdrop-blur max-w-md w-full pulse-glow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Icon name="Shield" className="text-primary" />
+                  {authMode === 'login' ? 'Вход в систему' : 'Регистрация'}
+                </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAuthModal(false)}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+              <CardDescription className="text-base mt-4 leading-relaxed">
+                💙 Этот анти-чит был создан от души для честных игроков EndpvpCraft. 
+                Мы защищаем ваш игровой опыт и делаем сервер лучше каждый день!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAuth} className="space-y-4">
+                {authMode === 'register' && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Игровой ник</label>
+                    <Input 
+                      placeholder="Ваш ник в Minecraft..." 
+                      className="cyber-border" 
+                      required 
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Email</label>
+                  <Input 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    className="cyber-border" 
+                    required 
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Пароль</label>
+                  <Input 
+                    type="password" 
+                    placeholder="Введите пароль..." 
+                    className="cyber-border" 
+                    required 
+                  />
+                </div>
+
+                {authMode === 'register' && (
+                  <div className="p-3 rounded-lg cyber-border bg-muted/30">
+                    <p className="text-xs text-muted-foreground">
+                      ✨ Регистрируясь, вы присоединяетесь к сообществу честных игроков 
+                      и получаете доступ к отправке репортов, лайкам и комментариям.
+                    </p>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full cyber-border pulse-glow">
+                  <Icon name={authMode === 'login' ? 'LogIn' : 'UserPlus'} size={18} />
+                  <span className="ml-2">
+                    {authMode === 'login' ? 'Войти' : 'Зарегистрироваться'}
+                  </span>
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  >
+                    {authMode === 'login' 
+                      ? 'Нет аккаунта? Зарегистрируйтесь' 
+                      : 'Уже есть аккаунт? Войдите'}
+                  </button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
